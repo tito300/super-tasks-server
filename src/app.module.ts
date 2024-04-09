@@ -5,13 +5,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TasksModule } from './tasks/tasks.module';
+import { ChatgptService } from './chatgpt/chatgpt.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
-      port: 5434,
+      port: 5432,
       username: 'postgres',
       password: 'postgres',
       database: 'supertasks',
@@ -21,8 +23,9 @@ import { TasksModule } from './tasks/tasks.module';
     AuthModule,
     UsersModule,
     TasksModule,
+    HttpModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, ChatgptService],
 })
 export class AppModule {}

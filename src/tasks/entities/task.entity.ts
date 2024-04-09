@@ -5,5 +5,6 @@ export class Task {
   description?: string;
   completed?: string;
   updated?: string;
+  selfLink: string;
   status: 'needsAction' | 'completed';
 }

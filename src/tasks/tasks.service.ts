@@ -3,6 +3,7 @@ import { google } from 'googleapis';
 import * as path from 'path';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { Task } from './entities/task.entity';
+import { ChatgptService } from 'src/chatgpt/chatgpt.service';
 
 // const auth = new google.auth.GoogleAuth({
 //   keyFile: path.join(__dirname, 'super-tasks-key-413803-1ddfe134af31.json'), // Path to your service account key file
@@ -10,12 +11,16 @@ import { Task } from './entities/task.entity';
 // });
 const auth =
   'ya29.a0AfB_byDfIK7g0zMQ-oxeLCJkxi78aaKNsVvc5il-smhEUvfj1eLMUMzWobvTLxuGGbtpGE69ozCSyXCI0vj2MUqGN5A23M25kG40HnfjAW5jbk_J3PiUD64K_8Pb_i9xFOexvvFeRmESnr6bjJnVmDRM1uz-WjER58YaCgYKARgSARASFQHGX2MitE_c9AmAU1L4VxJ7LYCTLg0170';
+// const auth = new google.auth.GoogleAuth({
+//   keyFile: path.join(__dirname, 'super-tasks-413803-708951a33172.json'), // Path to your service account key file
+//   scopes: ['https://www.googleapis.com/auth/tasks'], // Specify the scopes needed 
+// });
 
 @Injectable()
 export class TasksService {
   private tasks = google.tasks('v1');
 
-  constructor() {}
+  constructor(private chatgptService: ChatgptService) {}
 
   async listTaskList(token: string): Promise<Task[]> {
     try {
@@ -28,13 +33,14 @@ export class TasksService {
     }
   }
 
-  async listTasks(tasklistId: string, token: string): Promise<Task[]> {
+  async listTasks(tasklistId: string, token: string): Promise<{items: Task[]}> {
     try {
       const response = await this.tasks.tasks.list({
         oauth_token: token,
         tasklist: tasklistId,
       });
-      return response.data as Task[]; // This returns the tasks in the specified task list
+      console.log(response.data)
+      return response.data as {items: Task[]}; // This returns the tasks in the specified task list
     } catch (error) {
       throw new Error('Failed to list tasks: ' + error.message);
     }
@@ -104,6 +110,7 @@ export class TasksService {
     token: string,
   ): Promise<Task> {
     try {
+      this.chatgptService.parseTask(task.title);
       return this.tasks.tasks
         .insert({
           oauth_token: token,
