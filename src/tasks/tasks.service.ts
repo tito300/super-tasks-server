@@ -4,10 +4,12 @@ import * as path from 'path';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { Task } from './entities/task.entity';
 
-const auth = new google.auth.GoogleAuth({
-  keyFile: path.join(__dirname, 'super-tasks-key-413803-1ddfe134af31.json'), // Path to your service account key file
-  scopes: ['https://www.googleapis.com/auth/tasks'], // Specify the scopes needed
-});
+// const auth = new google.auth.GoogleAuth({
+//   keyFile: path.join(__dirname, 'super-tasks-key-413803-1ddfe134af31.json'), // Path to your service account key file
+//   scopes: ['https://www.googleapis.com/auth/tasks'], // Specify the scopes needed
+// });
+const auth =
+  'ya29.a0AfB_byDfIK7g0zMQ-oxeLCJkxi78aaKNsVvc5il-smhEUvfj1eLMUMzWobvTLxuGGbtpGE69ozCSyXCI0vj2MUqGN5A23M25kG40HnfjAW5jbk_J3PiUD64K_8Pb_i9xFOexvvFeRmESnr6bjJnVmDRM1uz-WjER58YaCgYKARgSARASFQHGX2MitE_c9AmAU1L4VxJ7LYCTLg0170';
 
 @Injectable()
 export class TasksService {
@@ -15,10 +17,10 @@ export class TasksService {
 
   constructor() {}
 
-  async listTaskList(): Promise<Task[]> {
+  async listTaskList(token: string): Promise<Task[]> {
     try {
       const response = await this.tasks.tasklists.list({
-        auth,
+        oauth_token: token,
       });
       return response.data as Task[]; // This returns the tasks in the specified task list
     } catch (error) {
@@ -26,10 +28,10 @@ export class TasksService {
     }
   }
 
-  async listTasks(tasklistId: string): Promise<Task[]> {
+  async listTasks(tasklistId: string, token: string): Promise<Task[]> {
     try {
       const response = await this.tasks.tasks.list({
-        auth,
+        oauth_token: token,
         tasklist: tasklistId,
       });
       return response.data as Task[]; // This returns the tasks in the specified task list
@@ -38,10 +40,14 @@ export class TasksService {
     }
   }
 
-  async deleteTask(tasklistId: string, taskId: string): Promise<void> {
+  async deleteTask(
+    tasklistId: string,
+    taskId: string,
+    token: string,
+  ): Promise<void> {
     try {
       await this.tasks.tasks.delete({
-        auth,
+        oauth_token: token,
         tasklist: tasklistId,
         task: taskId,
       });
@@ -50,11 +56,16 @@ export class TasksService {
     }
   }
 
-  async moveTask(tasklistId: string, taskId: string, previousTaskId?: string) {
+  async moveTask(
+    tasklistId: string,
+    taskId: string,
+    previousTaskId: string | undefined,
+    token: string,
+  ) {
     try {
       return this.tasks.tasks
         .move({
-          auth,
+          oauth_token: token,
           tasklist: tasklistId,
           task: taskId,
           previous: previousTaskId,
@@ -67,11 +78,15 @@ export class TasksService {
     }
   }
 
-  async updateTask(tasklistId: string, task: any): Promise<Task> {
+  async updateTask(
+    tasklistId: string,
+    task: any,
+    token: string,
+  ): Promise<Task> {
     try {
       return this.tasks.tasks
         .patch({
-          auth,
+          oauth_token: token,
           tasklist: tasklistId,
           task: task.id,
           requestBody: task,
@@ -86,11 +101,12 @@ export class TasksService {
     tasklistId: string,
     task: CreateTaskDto,
     previousTaskId: string,
+    token: string,
   ): Promise<Task> {
     try {
       return this.tasks.tasks
         .insert({
-          auth,
+          oauth_token: token,
           tasklist: tasklistId,
           requestBody: task,
           previous: previousTaskId,
@@ -104,7 +120,7 @@ export class TasksService {
   async createTasksList(): Promise<any> {
     try {
       return this.tasks.tasklists.insert({
-        auth,
+        oauth_token: auth,
         requestBody: {
           title: 'Task list Title',
         },

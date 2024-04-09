@@ -18,13 +18,22 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get('/')
-  async getTaskList() {
-    return this.tasksService.listTaskList();
+  async getTaskList(@Req() request: Request) {
+    console.log('$$$$', request.headers);
+    return this.tasksService.listTaskList(
+      request.headers['content-oauth'] as string,
+    );
   }
 
   @Get(':tasklistId/tasks')
-  async getTasks(@Param('tasklistId') tasklistId: string) {
-    return this.tasksService.listTasks(tasklistId);
+  async getTasks(
+    @Param('tasklistId') tasklistId: string,
+    @Req() request: Request,
+  ) {
+    return this.tasksService.listTasks(
+      tasklistId,
+      request.headers['content-oauth'] as string,
+    );
   }
 
   @Delete(':tasklistId/tasks/:taskId')
@@ -33,16 +42,26 @@ export class TasksController {
     @Param('tasklistId') tasklistId: string,
     @Param('taskId') taskId: string,
   ) {
-    return this.tasksService.deleteTask(tasklistId, taskId);
+    return this.tasksService.deleteTask(
+      tasklistId,
+      taskId,
+      request.headers['content-oauth'] as string,
+    );
   }
 
   @Post(':tasklistId/tasks/:taskId/move')
   async moveTask(
     @Param('tasklistId') tasklistId: string,
     @Param('taskId') taskId: string,
-    @Body('previousTaskId') previousTaskId?: string,
+    @Body('previousTaskId') previousTaskId: string | undefined,
+    @Req() request: Request,
   ) {
-    return this.tasksService.moveTask(tasklistId, taskId, previousTaskId);
+    return this.tasksService.moveTask(
+      tasklistId,
+      taskId,
+      previousTaskId,
+      request.headers['content-oauth'] as string,
+    );
   }
 
   @Post(':tasklistId/tasks/:taskId')
@@ -52,7 +71,11 @@ export class TasksController {
     @Param('taskId') taskId: string,
     @Body() task: any,
   ) {
-    return this.tasksService.updateTask(tasklistId, task);
+    return this.tasksService.updateTask(
+      tasklistId,
+      task,
+      request.headers['content-oauth'] as string,
+    );
   }
 
   @Post(':tasklistId/tasks')
@@ -62,7 +85,12 @@ export class TasksController {
     @Body() task: CreateTaskDto,
     @Query('previous') previousTaskId: string,
   ) {
-    return this.tasksService.createTask(tasklistId, task, previousTaskId);
+    return this.tasksService.createTask(
+      tasklistId,
+      task,
+      previousTaskId,
+      request.headers['content-oauth'] as string,
+    );
   }
 
   @Post('')
