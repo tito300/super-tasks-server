@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { google } from 'googleapis';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { Task } from './entities/task.entity';
@@ -17,6 +17,10 @@ export class TasksService {
       });
       return response.data as Task[]; // This returns the tasks in the specified task list
     } catch (error) {
+      if (error.status === 401) {
+        throw new HttpException('Invalid token', 401);
+      }
+
       throw new Error('Failed to list tasks: ' + error.message);
     }
   }
@@ -29,6 +33,9 @@ export class TasksService {
       });
       return response.data as {items: Task[]}; // This returns the tasks in the specified task list
     } catch (error) {
+      if (error.status === 401) {
+        throw new HttpException('Invalid token', 401);
+      }
       throw new Error('Failed to list tasks: ' + error.message);
     }
   }
@@ -45,6 +52,9 @@ export class TasksService {
         task: taskId,
       });
     } catch (error) {
+      if (error.status === 401) {
+        throw new HttpException('Invalid token', 401);
+      }
       throw new Error('Failed to delete the task: ' + error.message);
     }
   }
@@ -67,6 +77,9 @@ export class TasksService {
           return res.data;
         });
     } catch (error) {
+      if (error.status === 401) {
+        throw new HttpException('Invalid token', 401);
+      }
       throw new Error('Failed to move the task: ' + error.message);
     }
   }
@@ -86,6 +99,9 @@ export class TasksService {
         })
         .then((res) => res.data as Task);
     } catch (error) {
+      if (error.status === 401) {
+        throw new HttpException('Invalid token', 401);
+      }
       throw new Error('Failed to update the task: ' + error.message);
     }
   }
@@ -106,6 +122,9 @@ export class TasksService {
         })
         .then((res) => res.data as Task);
     } catch (error) {
+      if (error.status === 401) {
+        throw new HttpException('Invalid token', 401);
+      }
       throw new Error('Failed to update the task: ' + error.message);
     }
   }
