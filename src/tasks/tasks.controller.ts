@@ -19,7 +19,6 @@ export class TasksController {
 
   @Get('/')
   async getTaskList(@Req() request: Request) {
-    console.log('$$$$', request.headers);
     return this.tasksService.listTaskList(
       request.headers['content-oauth'] as string,
     );
@@ -85,6 +84,7 @@ export class TasksController {
     @Body() task: CreateTaskDto,
     @Query('previous') previousTaskId: string,
   ) {
+    console.log(task)
     return this.tasksService.createTask(
       tasklistId,
       task,

@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { TasksModule } from './tasks/tasks.module';
 import { ChatgptService } from './chatgpt/chatgpt.service';
 import { HttpModule } from '@nestjs/axios';
+import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { HttpModule } from '@nestjs/axios';
     AuthModule,
     UsersModule,
     TasksModule,
-    HttpModule
+    HttpModule,
+    CalendarModule,
   ],
   controllers: [AppController],
   providers: [AppService, ChatgptService],
