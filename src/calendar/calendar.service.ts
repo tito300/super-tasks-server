@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { CreateCalendarDto } from './dto/create-calendar.dto';
 import { UpdateCalendarDto } from './dto/update-calendar.dto';
 import { google } from 'googleapis';
-const dayjs = require('dayjs')
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 
 @Injectable()
 export class CalendarService {
@@ -10,19 +13,20 @@ export class CalendarService {
 
   async getCalendarList(token: string) {
     const response = await this.calendar.calendarList.list({
-      oauth_token: token
+      oauth_token: token,
     });
     return response.data.items;
   }
 
   getEvents(token: string, calendarId: string) {
-    console.log("time #######: ", dayjs().subtract(1, 'day').toISOString());
+    console.log('start time #######: ', dayjs().startOf('day').toISOString());
+    console.log('end time #######: ', dayjs().endOf('day').toISOString());
     return this.calendar.events.list({
       calendarId,
       oauth_token: token,
       // RFC3339 timestamp
-      timeMax: dayjs().add(1, 'day').toISOString(),
-      timeMin: dayjs().subtract(1, 'day').toISOString()
+      timeMin: dayjs().startOf('day').toISOString(),
+      timeMax: dayjs().endOf('day').toISOString(),
     });
   }
 
@@ -45,5 +49,4 @@ export class CalendarService {
   remove(id: number) {
     return `This action removes a #${id} calendar`;
   }
-
 }

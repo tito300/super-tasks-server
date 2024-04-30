@@ -14,7 +14,7 @@ import { CalendarModule } from './calendar/calendar.module';
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
-      port: 5432,
+      port: 5434,
       username: 'postgres',
       password: 'postgres',
       database: 'supertasks',
