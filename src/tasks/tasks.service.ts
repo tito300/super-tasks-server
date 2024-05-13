@@ -30,6 +30,7 @@ export class TasksService {
       const response = await this.tasks.tasks.list({
         oauth_token: token,
         tasklist: tasklistId,
+        maxResults: 100,
       });
       return response.data as {items: Task[]}; // This returns the tasks in the specified task list
     } catch (error) {
