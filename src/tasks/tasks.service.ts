@@ -3,6 +3,7 @@ import { google } from 'googleapis';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { Task } from './entities/task.entity';
 import { ChatgptService } from 'src/chatgpt/chatgpt.service';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class TasksService {
@@ -25,13 +26,17 @@ export class TasksService {
     }
   }
 
-  async listTasks(tasklistId: string, token: string): Promise<{items: Task[]}> {
+  async listTasks(
+    tasklistId: string,
+    token: string,
+  ): Promise<{ items: Task[] }> {
     try {
       const response = await this.tasks.tasks.list({
         oauth_token: token,
         tasklist: tasklistId,
+        maxResults: 100,
       });
-      return response.data as {items: Task[]}; // This returns the tasks in the specified task list
+      return response.data as { items: Task[] }; // This returns the tasks in the specified task list
     } catch (error) {
       if (error.status === 401) {
         throw new HttpException('Invalid token', 401);
@@ -132,7 +137,7 @@ export class TasksService {
   async createTasksList(): Promise<any> {
     try {
       return this.tasks.tasklists.insert({
-        oauth_token: "", // todo
+        oauth_token: '', // todo
         requestBody: {
           title: 'Task list Title',
         },

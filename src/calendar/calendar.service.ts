@@ -18,16 +18,36 @@ export class CalendarService {
     return response.data.items;
   }
 
-  getEvents(token: string, calendarId: string) {
-    console.log('start time #######: ', dayjs().startOf('day').toISOString());
-    console.log('end time #######: ', dayjs().endOf('day').toISOString());
-    return this.calendar.events.list({
+  async getEvents(token: string, calendarId: string) {
+    const events = await this.calendar.events.list({
       calendarId,
       oauth_token: token,
       // RFC3339 timestamp
-      timeMin: dayjs().startOf('day').toISOString(),
-      timeMax: dayjs().endOf('day').toISOString(),
+      timeMin: dayjs().utc().subtract(2, 'week').startOf('day').toISOString(),
+      timeMax: dayjs().utc().add(2, 'week').endOf('day').toISOString(),
     });
+    return events;
+
+    // to be considered
+    // const recurringEvents = events.data.items.filter((event) => {
+    //   return event.recurrence?.length;
+    // });
+
+    // this.calendar.events
+    //   .instances({
+    //     oauth_token: token,
+    //     calendarId,
+    //     eventId: recurringEvents.find(
+    //       (event) => event.summary === 'test recurring',
+    //     ).id,
+    //     showDeleted: true,
+    //     timeMin: dayjs().utc().startOf('day').toISOString(),
+    //     timeMax: dayjs().utc().endOf('day').toISOString(),
+    //   })
+    //   .then((res) => {
+    //     console.log('##########x#### res: ', res.data.items);
+    //     console.log('##########x#### item: ', res.data.items[0]);
+    //   });
   }
 
   create(createCalendarDto: CreateCalendarDto) {
