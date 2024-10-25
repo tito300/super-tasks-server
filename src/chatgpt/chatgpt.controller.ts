@@ -15,4 +15,16 @@ export class ChatgptController {
 
     return response;
   }
+
+  @Post('/rewrite')
+  async suggestRewrite(
+    @Body() body: { tones: string[]; input: string },
+  ): ReturnType<ChatgptService['suggestRewrite']> {
+    const response = await this.chatGptService.suggestRewrite(
+      body.tones,
+      body.input,
+    );
+
+    return response;
+  }
 }

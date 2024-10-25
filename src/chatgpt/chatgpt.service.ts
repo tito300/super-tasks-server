@@ -3,6 +3,7 @@ import OpenAi, { OpenAI } from 'openai';
 import { ChatDto, ChatMessage } from './dto/update-chat.dto';
 import { getChatGptMessages } from './utils/getChatGptMessages';
 import { ConfigService } from '@nestjs/config';
+import { constructRewritePrompt } from './utils/constructRewritePrompt';
 
 @Injectable()
 export class ChatgptService {
@@ -65,7 +66,7 @@ export class ChatgptService {
     const response = await this.openAiApi.chat.completions.create({
       model,
       messages: getChatGptMessages(messages),
-      max_completion_tokens: 500,
+      max_completion_tokens: 1000,
       temperature: 0.3,
     });
 
@@ -75,5 +76,18 @@ export class ChatgptService {
       direction: 'inbound',
       createdAt: Date.now(),
     };
+  }
+
+  async suggestRewrite(
+    tones: string[],
+    input: string,
+  ): Promise<{ message: string }> {
+    // Implement the rewrite logic based on the tone
+    const response = await this.openAiApi.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: constructRewritePrompt(tones, input),
+      temperature: 0.5,
+    });
+    return { message: response.choices[0].message.content };
   }
 }

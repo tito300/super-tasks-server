@@ -7,5 +7,5 @@ export type ChatMessage = {
 
 export class ChatDto {
   messages: ChatMessage[];
-  model: 'gpt-3.5-turbo' | 'gpt-4o-mini';
+  model: 'gpt-3.5-turbo' | 'gpt-4o-mini' | 'gpt-4o';
 }
