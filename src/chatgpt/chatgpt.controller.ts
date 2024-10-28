@@ -18,12 +18,54 @@ export class ChatgptController {
 
   @Post('/rewrite')
   async suggestRewrite(
-    @Body() body: { tones: string[]; input: string },
+    @Body()
+    body: {
+      improvements: string[];
+      input: string;
+      checkInaccuracies?: boolean;
+    },
   ): ReturnType<ChatgptService['suggestRewrite']> {
     const response = await this.chatGptService.suggestRewrite(
-      body.tones,
+      body.improvements,
       body.input,
+      body.checkInaccuracies,
     );
+
+    return response;
+  }
+
+  @Post('/explain')
+  async explain(
+    @Body()
+    body: {
+      text: string;
+    },
+  ): ReturnType<ChatgptService['suggestRewrite']> {
+    const response = await this.chatGptService.explain(body.text);
+
+    return response;
+  }
+
+  @Post('/simplify')
+  async simplify(
+    @Body()
+    body: {
+      text: string;
+    },
+  ): ReturnType<ChatgptService['simplify']> {
+    const response = await this.chatGptService.simplify(body.text);
+
+    return response;
+  }
+
+  @Post('/summarize')
+  async summarize(
+    @Body()
+    body: {
+      text: string;
+    },
+  ): ReturnType<ChatgptService['summarize']> {
+    const response = await this.chatGptService.summarize(body.text);
 
     return response;
   }

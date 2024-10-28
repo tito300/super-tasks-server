@@ -4,6 +4,9 @@ import { ChatDto, ChatMessage } from './dto/update-chat.dto';
 import { getChatGptMessages } from './utils/getChatGptMessages';
 import { ConfigService } from '@nestjs/config';
 import { constructRewritePrompt } from './utils/constructRewritePrompt';
+import { constructExplainPrompt } from './utils/constructExplainPrompt';
+import { constructSimplifyPrompt } from './utils/constructSimplifyPrompt';
+import { constructSummarizePrompt } from './utils/constructSummarizePrompt';
 
 @Injectable()
 export class ChatgptService {
@@ -79,15 +82,118 @@ export class ChatgptService {
   }
 
   async suggestRewrite(
-    tones: string[],
+    improvements: string[],
     input: string,
-  ): Promise<{ message: string }> {
-    // Implement the rewrite logic based on the tone
+    checkInaccuracies?: boolean,
+  ): Promise<{
+    message: {
+      message: string;
+      inaccuracyMessage: string;
+      hasInaccuracies: boolean;
+    };
+  }> {
     const response = await this.openAiApi.chat.completions.create({
       model: 'gpt-4o-mini',
-      messages: constructRewritePrompt(tones, input),
+      messages: constructRewritePrompt({
+        improvements,
+        input,
+        checkInaccuracies,
+      }),
       temperature: 0.5,
+      response_format: { type: 'json_object' },
     });
-    return { message: response.choices[0].message.content };
+
+    // console.log('prompt token: ', response.usage.prompt_tokens);
+    // console.log('total tokens: ', response.usage.total_tokens);
+    // console.log('output tokens: ', response.usage.completion_tokens);
+
+    const parsedResponse = JSON.parse(response.choices[0].message.content);
+    const processedResponse = {
+      message: parsedResponse.message || '',
+      inaccuracyMessage: appendFactCheckDisclaimer(
+        parsedResponse.inaccuracyMessage,
+      ),
+      hasInaccuracies: !!parsedResponse.inaccuracyMessage,
+    };
+
+    return processedResponse;
   }
+
+  async explain(text: string): Promise<{
+    message: {
+      message: string;
+      inaccuracyMessage: string;
+      hasInaccuracies: boolean;
+    };
+  }> {
+    const response = await this.openAiApi.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: constructExplainPrompt({
+        text,
+      }),
+      max_completion_tokens: 1000,
+      temperature: 0.5,
+      response_format: { type: 'json_object' },
+    });
+
+    // console.log('prompt token: ', response.usage.prompt_tokens);
+    // console.log('total tokens: ', response.usage.total_tokens);
+    // console.log('output tokens: ', response.usage.completion_tokens);
+    console.log('response', response.choices[0].message.content);
+    const parsedResponse = JSON.parse(response.choices[0].message.content);
+    const processedResponse = {
+      message: parsedResponse.message || '',
+    };
+
+    return processedResponse;
+  }
+  async simplify(text: string): Promise<{
+    message: string;
+  }> {
+    const response = await this.openAiApi.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: constructSimplifyPrompt({ text }),
+      max_completion_tokens: 600,
+      temperature: 0.5,
+      response_format: { type: 'json_object' },
+    });
+
+    // console.log('prompt token: ', response.usage.prompt_tokens);
+    // console.log('total tokens: ', response.usage.total_tokens);
+    // console.log('output tokens: ', response.usage.completion_tokens);
+
+    const parsedResponse = JSON.parse(response.choices[0].message.content);
+    const processedResponse = {
+      message: parsedResponse.message || '',
+    };
+
+    return processedResponse;
+  }
+
+  async summarize(text: string): Promise<{
+    message: string;
+  }> {
+    const response = await this.openAiApi.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: constructSummarizePrompt({ text }),
+      max_completion_tokens: 600,
+      temperature: 0.5,
+      response_format: { type: 'json_object' },
+    });
+
+    // console.log('prompt token: ', response.usage.prompt_tokens);
+    // console.log('total tokens: ', response.usage.total_tokens);
+    // console.log('output tokens: ', response.usage.completion_tokens);
+
+    const parsedResponse = JSON.parse(response.choices[0].message.content);
+    const processedResponse = {
+      message: parsedResponse.message || '',
+    };
+
+    return processedResponse;
+  }
+}
+
+function appendFactCheckDisclaimer(inaccuracyMessage: string) {
+  return `${inaccuracyMessage ? `Inaccurate. ${inaccuracyMessage}\n\n` : 'Accurate. '}Please note that AI can sometimes make mistakes.`;
 }
