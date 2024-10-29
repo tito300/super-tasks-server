@@ -1,6 +1,16 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ChatDto, ChatMessage } from './dto/update-chat.dto';
+import {
+  AiQuickActionsBody,
+  ChatDto,
+  ChatMessage,
+} from './dto/update-chat.dto';
 import { ChatgptService } from './chatgpt.service';
+
+export type AiQuickActionResponse = {
+  message: string;
+  hasInaccuracies: boolean;
+  inaccuracyMessage: string;
+};
 
 @Controller('api/ai')
 export class ChatgptController {
@@ -34,38 +44,27 @@ export class ChatgptController {
     return response;
   }
 
-  @Post('/explain')
+  @Post('/quick-action')
   async explain(
     @Body()
-    body: {
-      text: string;
-    },
-  ): ReturnType<ChatgptService['suggestRewrite']> {
-    const response = await this.chatGptService.explain(body.text);
-
-    return response;
-  }
-
-  @Post('/simplify')
-  async simplify(
-    @Body()
-    body: {
-      text: string;
-    },
-  ): ReturnType<ChatgptService['simplify']> {
-    const response = await this.chatGptService.simplify(body.text);
-
-    return response;
-  }
-
-  @Post('/summarize')
-  async summarize(
-    @Body()
-    body: {
-      text: string;
-    },
-  ): ReturnType<ChatgptService['summarize']> {
-    const response = await this.chatGptService.summarize(body.text);
+    body: AiQuickActionsBody,
+  ): Promise<AiQuickActionResponse> {
+    let serviceMethod: keyof ChatgptService;
+    switch (body.action) {
+      case 'Summarize':
+        serviceMethod = 'summarize';
+        break;
+      case 'Explain':
+        serviceMethod = 'explain';
+        break;
+      case 'Simplify':
+        serviceMethod = 'simplify';
+        break;
+      case 'PeerReview':
+        serviceMethod = 'peerReview';
+        break;
+    }
+    const response = await this.chatGptService[serviceMethod](body);
 
     return response;
   }

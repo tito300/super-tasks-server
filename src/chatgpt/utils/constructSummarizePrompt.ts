@@ -1,17 +1,24 @@
 import OpenAI from 'openai';
-import { commonPromptCommand } from './constructExplainPrompt';
+import {
+  commonPromptCommand,
+  factCheckCommand,
+  KeepShortCommand,
+} from './constructExplainPrompt';
+import { AiQuickActionsBody } from '../dto/update-chat.dto';
 
 export function constructSummarizePrompt({
   text,
-}: {
-  text: string;
-}): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
+  aiOptions,
+}: AiQuickActionsBody): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
   return [
     {
       role: 'system',
-      content: `You are an AI assistant. Your task is to take the following piece of text and summarize it. 
+      content: `You are an AI assistant. Your task is to take the following text and summarize it.
+        Make sure it the summary is written from the same perspective as the original text.
+        Make sure the summary is concise and easy to read. 
+        ${aiOptions.factCheck ? factCheckCommand : ''}
+         ${aiOptions.keepShort ? KeepShortCommand : ''}
         ${commonPromptCommand}    
-        Return the result in a json object with the key 'message'. 
             
             Text to summarize: "${text}"`,
     },

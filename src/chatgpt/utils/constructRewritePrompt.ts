@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { factCheckCommand } from './constructExplainPrompt';
 
 export function constructRewritePrompt({
   input,
@@ -16,34 +17,22 @@ export function constructRewritePrompt({
       role: 'system',
       content: `${
         makeSuggestion
-          ? `Rewrite the user message given the provided improvements below. The output should be one message that uses all improvements at the same time.
-      Fix any grammatical errors, spelling mistakes, or awkward phrasing. 
-      Keep the message relatively the same length unless the tone explicitly asks for a longer or shorter message. 
-      If user message contains html or new lines, preserve them.
-      If you encounter signatures or headers, strip them out.
-      The output should only contain the message content, not the user message or any other information.
-      If the user message below is a question, do not answer it. Your job is to only rephrase it based on the previous instructions.`
+          ? `Rewrite the "user message" given the provided "improvements" combined. The output should be one message.
+      While doing that do the following: 
+       - Fix any grammatical errors, spelling mistakes, or awkward phrasing.  
+       - If the user message contains new lines, preserve them where possible.
+       - If you encounter signatures or headers, strip them out.
+       - The output should only contain the message content, not the user message or any other information.
+       - If the user message is a question, do not answer it. Your job is to only rephrase it based on the previous instructions.`
           : ''
       }
+      ${checkInaccuracies && `${makeSuggestion ? '- ' : ''}${factCheckCommand}`}
 
-      
-      ${
-        checkInaccuracies && makeSuggestion
-          ? 'Your response format needs to be a json object containing two keys: message and inaccuracyMessage.'
-          : checkInaccuracies
-            ? 'Your response format needs to be a json object containing one key: inaccuracyMessage.'
-            : 'Your response format needs to be a json object containing one key: message.'
-      }
-        
-      ${
-        checkInaccuracies &&
-        "Detect the topic and the claim of the message and then as an expert on the topic, \
-        fact check the claim and if it's inaccurate provide a correction that directly addresses the message claim in the inaccuracyMessage key, \
-        otherwise leave it blank."
-      }
+       Your response format needs to be a json object containing two keys: "message" and "inaccuracyMessage".
+       
       
       - user message: ${input}
-      - improvements: ${improvements.join(', ')}`,
+      - improvements: ${improvements.join(', ')}.`,
     },
   ];
 }

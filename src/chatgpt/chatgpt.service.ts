@@ -1,12 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import OpenAi, { OpenAI } from 'openai';
-import { ChatDto, ChatMessage } from './dto/update-chat.dto';
+import {
+  AiQuickActionsBody,
+  ChatDto,
+  ChatMessage,
+} from './dto/update-chat.dto';
 import { getChatGptMessages } from './utils/getChatGptMessages';
 import { ConfigService } from '@nestjs/config';
 import { constructRewritePrompt } from './utils/constructRewritePrompt';
 import { constructExplainPrompt } from './utils/constructExplainPrompt';
 import { constructSimplifyPrompt } from './utils/constructSimplifyPrompt';
 import { constructSummarizePrompt } from './utils/constructSummarizePrompt';
+import { constructPeerReviewPrompt } from './utils/constructPeerReviewPrompt';
+import { AiQuickActionResponse } from './chatgpt.controller';
 
 @Injectable()
 export class ChatgptService {
@@ -93,7 +99,7 @@ export class ChatgptService {
     };
   }> {
     const response = await this.openAiApi.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'chatgpt-4o-latest',
       messages: constructRewritePrompt({
         improvements,
         input,
@@ -119,18 +125,10 @@ export class ChatgptService {
     return processedResponse;
   }
 
-  async explain(text: string): Promise<{
-    message: {
-      message: string;
-      inaccuracyMessage: string;
-      hasInaccuracies: boolean;
-    };
-  }> {
+  async explain(body: AiQuickActionsBody): Promise<AiQuickActionResponse> {
     const response = await this.openAiApi.chat.completions.create({
       model: 'gpt-4o-mini',
-      messages: constructExplainPrompt({
-        text,
-      }),
+      messages: constructExplainPrompt(body),
       max_completion_tokens: 1000,
       temperature: 0.5,
       response_format: { type: 'json_object' },
@@ -143,16 +141,18 @@ export class ChatgptService {
     const parsedResponse = JSON.parse(response.choices[0].message.content);
     const processedResponse = {
       message: parsedResponse.message || '',
+      inaccuracyMessage: appendFactCheckDisclaimer(
+        parsedResponse.inaccuracyMessage,
+      ),
+      hasInaccuracies: !!parsedResponse.inaccuracyMessage,
     };
 
     return processedResponse;
   }
-  async simplify(text: string): Promise<{
-    message: string;
-  }> {
+  async simplify(body): Promise<AiQuickActionResponse> {
     const response = await this.openAiApi.chat.completions.create({
       model: 'gpt-4o-mini',
-      messages: constructSimplifyPrompt({ text }),
+      messages: constructSimplifyPrompt(body),
       max_completion_tokens: 600,
       temperature: 0.5,
       response_format: { type: 'json_object' },
@@ -165,17 +165,19 @@ export class ChatgptService {
     const parsedResponse = JSON.parse(response.choices[0].message.content);
     const processedResponse = {
       message: parsedResponse.message || '',
+      inaccuracyMessage: appendFactCheckDisclaimer(
+        parsedResponse.inaccuracyMessage,
+      ),
+      hasInaccuracies: !!parsedResponse.inaccuracyMessage,
     };
 
     return processedResponse;
   }
 
-  async summarize(text: string): Promise<{
-    message: string;
-  }> {
+  async summarize(body): Promise<AiQuickActionResponse> {
     const response = await this.openAiApi.chat.completions.create({
       model: 'gpt-4o-mini',
-      messages: constructSummarizePrompt({ text }),
+      messages: constructSummarizePrompt(body),
       max_completion_tokens: 600,
       temperature: 0.5,
       response_format: { type: 'json_object' },
@@ -188,6 +190,34 @@ export class ChatgptService {
     const parsedResponse = JSON.parse(response.choices[0].message.content);
     const processedResponse = {
       message: parsedResponse.message || '',
+      inaccuracyMessage: appendFactCheckDisclaimer(
+        parsedResponse.inaccuracyMessage,
+      ),
+      hasInaccuracies: !!parsedResponse.inaccuracyMessage,
+    };
+
+    return processedResponse;
+  }
+  async peerReview(body): Promise<AiQuickActionResponse> {
+    const response = await this.openAiApi.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: constructPeerReviewPrompt(body),
+      max_completion_tokens: 600,
+      temperature: 0.5,
+      response_format: { type: 'json_object' },
+    });
+
+    // console.log('prompt token: ', response.usage.prompt_tokens);
+    // console.log('total tokens: ', response.usage.total_tokens);
+    // console.log('output tokens: ', response.usage.completion_tokens);
+
+    const parsedResponse = JSON.parse(response.choices[0].message.content);
+    const processedResponse = {
+      message: parsedResponse.message || '',
+      inaccuracyMessage: appendFactCheckDisclaimer(
+        parsedResponse.inaccuracyMessage,
+      ),
+      hasInaccuracies: !!parsedResponse.inaccuracyMessage,
     };
 
     return processedResponse;

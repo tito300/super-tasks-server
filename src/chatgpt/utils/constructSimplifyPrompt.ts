@@ -1,17 +1,22 @@
 import OpenAI from 'openai';
-import { commonPromptCommand } from './constructExplainPrompt';
+import {
+  commonPromptCommand,
+  factCheckCommand,
+  KeepShortCommand,
+} from './constructExplainPrompt';
+import { AiQuickActionsBody } from '../dto/update-chat.dto';
 
 export function constructSimplifyPrompt({
   text,
-}: {
-  text: string;
-}): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
+  aiOptions,
+}: AiQuickActionsBody): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
   return [
     {
       role: 'system',
       content: `You are an AI assistant. Your task is to take the following piece of text and simplify it to make it easier to understand. 
-        ${commonPromptCommand}  
-        Return the result in a json object with the key 'message'. 
+        ${aiOptions.factCheck ? factCheckCommand : ''}
+         ${aiOptions.keepShort ? KeepShortCommand : ''}
+        ${commonPromptCommand} 
           
           Text to simplify: "${text}"`,
     },
