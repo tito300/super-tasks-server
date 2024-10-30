@@ -12,7 +12,7 @@ export class ChatDto {
 
 export type AiQuickActionsBody = {
   text: string;
-  action: 'Summarize' | 'Explain' | 'Simplify' | 'PeerReview';
+  action: 'Summarize' | 'Explain' | 'Simplify' | 'PeerReview' | 'Answer';
   aiOptions?: {
     keepShort?: boolean;
     factCheck?: boolean;

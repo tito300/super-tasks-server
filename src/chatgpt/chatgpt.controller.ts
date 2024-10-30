@@ -33,12 +33,14 @@ export class ChatgptController {
       improvements: string[];
       input: string;
       checkInaccuracies?: boolean;
+      keepShort?: boolean;
     },
   ): ReturnType<ChatgptService['suggestRewrite']> {
     const response = await this.chatGptService.suggestRewrite(
       body.improvements,
       body.input,
       body.checkInaccuracies,
+      body.keepShort,
     );
 
     return response;
@@ -62,6 +64,9 @@ export class ChatgptController {
         break;
       case 'PeerReview':
         serviceMethod = 'peerReview';
+        break;
+      case 'Answer':
+        serviceMethod = 'answer';
         break;
     }
     const response = await this.chatGptService[serviceMethod](body);
