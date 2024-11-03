@@ -21,6 +21,7 @@ export class ChatgptController {
     const response = await this.chatGptService.generateMessageResponse(
       body.messages,
       body.model,
+      body.aiOptions,
     );
 
     return response;
@@ -67,6 +68,8 @@ export class ChatgptController {
         break;
       case 'Answer':
         serviceMethod = 'answer';
+      case 'FactCheck':
+        serviceMethod = 'factCheck';
         break;
     }
     const response = await this.chatGptService[serviceMethod](body);

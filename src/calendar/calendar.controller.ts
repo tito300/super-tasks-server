@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CalendarService } from './calendar.service';
 import { CreateCalendarDto } from './dto/create-calendar.dto';
@@ -36,6 +37,9 @@ export class CalendarController {
 
   @Get(':id/events')
   findEvents(@Req() request: Request, @Param('id') id: string) {
+    // return 401 if no token
+    // throw new UnauthorizedException();
+
     return this.calendarService.getEvents(
       request.headers['content-oauth'] as string,
       id,

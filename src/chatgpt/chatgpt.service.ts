@@ -14,6 +14,7 @@ import { constructSummarizePrompt } from './utils/constructSummarizePrompt';
 import { constructPeerReviewPrompt } from './utils/constructPeerReviewPrompt';
 import { AiQuickActionResponse } from './chatgpt.controller';
 import { constructAnswerPrompt } from './utils/constructAnswerPrompt';
+import { constructFactCheckPrompt } from './utils/constructFactCheckPrompt';
 
 @Injectable()
 export class ChatgptService {
@@ -72,13 +73,16 @@ export class ChatgptService {
   async generateMessageResponse(
     messages: ChatMessage[],
     model: ChatDto['model'],
+    aiOptions?: ChatDto['aiOptions'],
   ): Promise<ChatMessage> {
     const response = await this.openAiApi.chat.completions.create({
       model,
-      messages: getChatGptMessages(messages),
+      messages: getChatGptMessages(messages, aiOptions),
       max_completion_tokens: 1000,
       temperature: 0.3,
     });
+
+    // throw new Error('Method not implemented.');
 
     return {
       id: Date.now(),
@@ -207,6 +211,25 @@ export class ChatgptService {
     const response = await this.openAiApi.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: constructAnswerPrompt(body),
+      temperature: 0.5,
+      response_format: { type: 'json_object' },
+    });
+
+    const parsedResponse = JSON.parse(response.choices[0].message.content);
+    const processedResponse = {
+      message: parsedResponse.message || '',
+      inaccuracyMessage: appendFactCheckDisclaimer(
+        parsedResponse.inaccuracyMessage,
+      ),
+      hasInaccuracies: !!parsedResponse.inaccuracyMessage,
+    };
+
+    return processedResponse;
+  }
+  async factCheck(body: AiQuickActionsBody): Promise<AiQuickActionResponse> {
+    const response = await this.openAiApi.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: constructFactCheckPrompt(body),
       temperature: 0.5,
       response_format: { type: 'json_object' },
     });

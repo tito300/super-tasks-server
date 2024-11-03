@@ -2,10 +2,11 @@ import {
   ChatCompletionCreateParamsBase,
   ChatCompletionMessageParam,
 } from 'openai/resources/chat/completions';
-import { ChatMessage } from '../dto/update-chat.dto';
+import { ChatDto, ChatMessage } from '../dto/update-chat.dto';
 
 export function getChatGptMessages(
   messages: ChatMessage[],
+  aiOptions?: ChatDto['aiOptions'],
 ): ChatCompletionMessageParam[] {
   const mappedMessages = messages.map((message) => {
     return {
@@ -19,9 +20,9 @@ export function getChatGptMessages(
 
   return [
     {
-      role: 'assistant',
-      content:
-        "Take the following user's message and give them a concise response unless they specifically asked for some kind of clarification",
+      role: 'system',
+      content: `Take the following user's messages and provide a response.
+        ${aiOptions.keepShort ? 'Keep the responses short and concise.' : ''}`,
     },
     ...mappedMessages,
   ];
