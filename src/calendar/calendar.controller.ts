@@ -24,7 +24,8 @@ export class CalendarController {
   }
 
   @Get()
-  findAll(@Req() request: Request) {
+  async findAll(@Req() request: Request) {
+    // throw new Error('Not implemented');
     return this.calendarService.getCalendarList(
       request.headers['content-oauth'] as string,
     );
@@ -58,4 +59,10 @@ export class CalendarController {
   remove(@Param('id') id: string) {
     return this.calendarService.remove(+id);
   }
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }

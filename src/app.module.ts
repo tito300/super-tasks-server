@@ -14,15 +14,20 @@ import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: ['.env.development.local', '.env.development'],
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
-      port: 5434,
+      port: 5432,
       username: 'postgres',
       password: 'postgres',
-      database: 'supertasks',
+      database: 'axess',
       entities: [],
       synchronize: true,
+      autoLoadEntities: true,
     }),
     AuthModule,
     UsersModule,
@@ -31,10 +36,6 @@ import { ConfigModule } from '@nestjs/config';
     CalendarModule,
     ChatgptModule,
     ChatgptModule,
-    ConfigModule.forRoot({
-      envFilePath: ['.env.development.local', '.env.development'],
-      isGlobal: true,
-    }),
   ],
   controllers: [AppController, ChatgptController],
   providers: [AppService, ChatgptService],

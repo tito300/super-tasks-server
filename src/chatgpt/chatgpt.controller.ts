@@ -1,10 +1,11 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import {
   AiQuickActionsBody,
   ChatDto,
   ChatMessage,
 } from './dto/update-chat.dto';
 import { ChatgptService } from './chatgpt.service';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 export type AiQuickActionResponse = {
   message: string;
@@ -16,6 +17,7 @@ export type AiQuickActionResponse = {
 export class ChatgptController {
   constructor(private readonly chatGptService: ChatgptService) {}
 
+  @UseGuards(AuthGuard)
   @Post('/chat')
   async generateMessage(@Body() body: ChatDto): Promise<ChatMessage> {
     const response = await this.chatGptService.generateMessageResponse(
@@ -27,6 +29,7 @@ export class ChatgptController {
     return response;
   }
 
+  @UseGuards(AuthGuard)
   @Post('/rewrite')
   async suggestRewrite(
     @Body()
@@ -47,6 +50,7 @@ export class ChatgptController {
     return response;
   }
 
+  @UseGuards(AuthGuard)
   @Post('/quick-action')
   async explain(
     @Body()
