@@ -41,7 +41,7 @@
     "dayjs": "^1.11.11",
     "dotenv-flow": "^4.1.0",
     "googleapis": "^133.0.0",
-    "openai": "^4.68.1",
+    "openai": "^4.71.0",
     "pg": "^8.11.3",
     "postgresql": "^0.0.1",
     "reflect-metadata": "^0.1.13",

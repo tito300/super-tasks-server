@@ -1,5 +1,6 @@
 import { IsEmail } from 'class-validator';
 import {
+  BeforeUpdate,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -40,4 +41,18 @@ export class User {
 
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @Column({ default: 0 })
+  todayAiUsage: number;
+
+  @Column({ default: new Date(), type: 'timestamp' })
+  todayAiUsageTimestamp: Date;
+
+  @BeforeUpdate()
+  updateTodayAiUsageTimestamp() {
+    if (this.todayAiUsage) {
+      this.todayAiUsageTimestamp = new Date();
+    }
+    return this;
+  }
 }

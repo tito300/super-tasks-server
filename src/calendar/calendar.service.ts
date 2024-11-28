@@ -23,31 +23,10 @@ export class CalendarService {
       calendarId,
       oauth_token: token,
       // RFC3339 timestamp
-      timeMin: dayjs().utc().subtract(2, 'week').startOf('day').toISOString(),
-      timeMax: dayjs().utc().add(2, 'week').endOf('day').toISOString(),
+      timeMin: dayjs().utc().subtract(1, 'day').startOf('day').toISOString(),
+      timeMax: dayjs().utc().add(1, 'day').endOf('day').toISOString(),
     });
     return events;
-
-    // to be considered
-    // const recurringEvents = events.data.items.filter((event) => {
-    //   return event.recurrence?.length;
-    // });
-
-    // this.calendar.events
-    //   .instances({
-    //     oauth_token: token,
-    //     calendarId,
-    //     eventId: recurringEvents.find(
-    //       (event) => event.summary === 'test recurring',
-    //     ).id,
-    //     showDeleted: true,
-    //     timeMin: dayjs().utc().startOf('day').toISOString(),
-    //     timeMax: dayjs().utc().endOf('day').toISOString(),
-    //   })
-    //   .then((res) => {
-    //     console.log('##########x#### res: ', res.data.items);
-    //     console.log('##########x#### item: ', res.data.items[0]);
-    //   });
   }
 
   create(createCalendarDto: CreateCalendarDto) {

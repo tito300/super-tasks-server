@@ -4,6 +4,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserDTO } from './dto/user.dto';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class UsersService {
@@ -47,5 +48,29 @@ export class UsersService {
   async findByAccountId(accountId: string): Promise<User | null> {
     const user = await this.useRepository.findOneBy({ accountId });
     return user;
+  }
+
+  async updateTodayAiUsage(userId: number, tokensUsed: number) {
+    const user = await this.useRepository.findOneBy({ id: userId });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (user.subscriptionType === 'premium') return;
+
+    const lastReset = user.todayAiUsageTimestamp;
+    const lastResetBeforeToday = dayjs(lastReset).isBefore(dayjs(), 'day');
+
+    console.log('********* lastResetBeforeToday', lastResetBeforeToday);
+    console.log('********* lastReset', lastReset);
+    console.log('********* tokensUsed', tokensUsed);
+    console.log('********* user.todayAiUsage', user.todayAiUsage);
+
+    if (!lastReset || !lastResetBeforeToday) {
+      user.todayAiUsage += tokensUsed;
+    } else {
+      user.todayAiUsage = tokensUsed;
+    }
+    await this.useRepository.save(user);
   }
 }

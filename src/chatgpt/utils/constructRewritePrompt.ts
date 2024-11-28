@@ -1,18 +1,16 @@
 import OpenAI from 'openai';
 import { factCheckCommand, KeepShortCommand } from './constructExplainPrompt';
+import { AiRequestBaseBody } from '../dto/update-chat.dto';
 
 export function constructRewritePrompt({
   input,
   improvements,
-  checkInaccuracies,
-  keepShort,
+  aiOptions,
 }: {
   improvements: string[];
   input: string;
-  checkInaccuracies?: boolean;
-  keepShort?: boolean;
+  aiOptions: AiRequestBaseBody['aiOptions'];
 }): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
-  console.log('checkInaccuracies', checkInaccuracies);
   const makeSuggestion = improvements.length > 0;
   return [
     {
@@ -27,8 +25,8 @@ export function constructRewritePrompt({
        - If the user message is a question, do not answer it. Your job is to only rephrase it based on the previous instructions.`
           : ''
       }
-      ${checkInaccuracies && `${makeSuggestion ? '- ' : ''}${factCheckCommand}`}
-      ${keepShort ? `- The ${KeepShortCommand}` : ''}
+      ${aiOptions.factCheck && `${makeSuggestion ? '- ' : ''}${factCheckCommand}`}
+      ${aiOptions.keepShort ? `- The ${KeepShortCommand}` : ''}
 
        Your response format needs to be a json object containing two keys: "message" and "inaccuracyMessage".
        

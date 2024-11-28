@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import OpenAi, { OpenAI } from 'openai';
 import {
   AiQuickActionsBody,
+  AiRequestBaseBody,
   ChatDto,
   ChatMessage,
 } from './dto/update-chat.dto';
@@ -15,6 +16,13 @@ import { constructPeerReviewPrompt } from './utils/constructPeerReviewPrompt';
 import { AiQuickActionResponse } from './chatgpt.controller';
 import { constructAnswerPrompt } from './utils/constructAnswerPrompt';
 import { constructFactCheckPrompt } from './utils/constructFactCheckPrompt';
+import { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions';
+
+export type ChatGptModel = ChatCompletionCreateParamsBase['model'];
+export type QuickActionServiceResponse = {
+  response: AiQuickActionResponse;
+  totalUsage: number;
+};
 
 @Injectable()
 export class ChatgptService {
@@ -64,54 +72,43 @@ export class ChatgptService {
     ];
   }
 
-  private transformResponse(response: string): any {
-    // Implement parsing logic based on the expected response format
-    // This example requires custom implementation
-    return {};
-  }
-
   async generateMessageResponse(
     messages: ChatMessage[],
-    model: ChatDto['model'],
     aiOptions?: ChatDto['aiOptions'],
-  ): Promise<ChatMessage> {
+  ): Promise<{ response: ChatMessage; totalUsage: number }> {
     const response = await this.openAiApi.chat.completions.create({
-      model,
+      model: aiOptions?.model || 'gpt-4o-mini',
       messages: getChatGptMessages(messages, aiOptions),
       max_completion_tokens: 1000,
       temperature: 0.3,
     });
 
-    // throw new Error('Method not implemented.');
-
     return {
-      id: Date.now(),
-      message: response.choices[0]?.message?.content,
-      direction: 'inbound',
-      createdAt: Date.now(),
+      response: {
+        id: Date.now(),
+        message: response.choices[0]?.message?.content,
+        direction: 'inbound',
+        createdAt: Date.now(),
+      },
+      totalUsage: response.usage?.total_tokens || 0,
     };
   }
 
-  async suggestRewrite(
-    improvements: string[],
-    input: string,
-    checkInaccuracies?: boolean,
-    keepShort?: boolean,
-  ): Promise<{
-    message: {
-      message: string;
-      inaccuracyMessage: string;
-      hasInaccuracies: boolean;
-      keepShort: boolean;
-    };
-  }> {
+  async suggestRewrite({
+    improvements,
+    input,
+    aiOptions,
+  }: {
+    improvements: string[];
+    input: string;
+    aiOptions: AiRequestBaseBody['aiOptions'];
+  }): Promise<QuickActionServiceResponse> {
     const response = await this.openAiApi.chat.completions.create({
-      model: 'chatgpt-4o-latest',
+      model: aiOptions?.model || 'gpt-4o-mini',
       messages: constructRewritePrompt({
         improvements,
         input,
-        checkInaccuracies,
-        keepShort,
+        aiOptions,
       }),
       temperature: 0.5,
       response_format: { type: 'json_object' },
@@ -126,14 +123,18 @@ export class ChatgptService {
       hasInaccuracies: !!parsedResponse.inaccuracyMessage,
     };
 
-    return processedResponse;
+    return {
+      response: processedResponse,
+      totalUsage: response.usage?.total_tokens || 0,
+    };
   }
 
-  async explain(body: AiQuickActionsBody): Promise<AiQuickActionResponse> {
+  async explain(body: AiQuickActionsBody): Promise<QuickActionServiceResponse> {
+    console.log('********** body', body);
     const response = await this.openAiApi.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: body.aiOptions?.model || 'gpt-4o-mini',
       messages: constructExplainPrompt(body),
-      max_completion_tokens: 1000,
+      max_completion_tokens: 2000,
       temperature: 0.5,
       response_format: { type: 'json_object' },
     });
@@ -147,11 +148,14 @@ export class ChatgptService {
       hasInaccuracies: !!parsedResponse.inaccuracyMessage,
     };
 
-    return processedResponse;
+    return {
+      response: processedResponse,
+      totalUsage: response.usage?.total_tokens || 0,
+    };
   }
-  async simplify(body): Promise<AiQuickActionResponse> {
+  async simplify(body): Promise<QuickActionServiceResponse> {
     const response = await this.openAiApi.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: body.aiOptions?.model || 'gpt-4o-mini',
       messages: constructSimplifyPrompt(body),
       temperature: 0.5,
       response_format: { type: 'json_object' },
@@ -166,12 +170,15 @@ export class ChatgptService {
       hasInaccuracies: !!parsedResponse.inaccuracyMessage,
     };
 
-    return processedResponse;
+    return {
+      response: processedResponse,
+      totalUsage: response.usage?.total_tokens || 0,
+    };
   }
 
-  async summarize(body): Promise<AiQuickActionResponse> {
+  async summarize(body): Promise<QuickActionServiceResponse> {
     const response = await this.openAiApi.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: body.aiOptions?.model || 'gpt-4o-mini',
       messages: constructSummarizePrompt(body),
       temperature: 0.5,
       response_format: { type: 'json_object' },
@@ -186,11 +193,16 @@ export class ChatgptService {
       hasInaccuracies: !!parsedResponse.inaccuracyMessage,
     };
 
-    return processedResponse;
+    return {
+      response: processedResponse,
+      totalUsage: response.usage?.total_tokens || 0,
+    };
   }
-  async peerReview(body: AiQuickActionsBody): Promise<AiQuickActionResponse> {
+  async peerReview(
+    body: AiQuickActionsBody,
+  ): Promise<QuickActionServiceResponse> {
     const response = await this.openAiApi.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: body.aiOptions?.model || 'gpt-4o-mini',
       messages: constructPeerReviewPrompt(body),
       temperature: 0.5,
       response_format: { type: 'json_object' },
@@ -205,11 +217,14 @@ export class ChatgptService {
       hasInaccuracies: !!parsedResponse.inaccuracyMessage,
     };
 
-    return processedResponse;
+    return {
+      response: processedResponse,
+      totalUsage: response.usage?.total_tokens || 0,
+    };
   }
-  async answer(body: AiQuickActionsBody): Promise<AiQuickActionResponse> {
+  async answer(body: AiQuickActionsBody): Promise<QuickActionServiceResponse> {
     const response = await this.openAiApi.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: body.aiOptions?.model || 'gpt-4o-mini',
       messages: constructAnswerPrompt(body),
       temperature: 0.5,
       response_format: { type: 'json_object' },
@@ -224,11 +239,16 @@ export class ChatgptService {
       hasInaccuracies: !!parsedResponse.inaccuracyMessage,
     };
 
-    return processedResponse;
+    return {
+      response: processedResponse,
+      totalUsage: response.usage?.total_tokens || 0,
+    };
   }
-  async factCheck(body: AiQuickActionsBody): Promise<AiQuickActionResponse> {
+  async factCheck(
+    body: AiQuickActionsBody,
+  ): Promise<QuickActionServiceResponse> {
     const response = await this.openAiApi.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: body.aiOptions?.model || 'gpt-4o-mini',
       messages: constructFactCheckPrompt(body),
       temperature: 0.5,
       response_format: { type: 'json_object' },
@@ -243,7 +263,10 @@ export class ChatgptService {
       hasInaccuracies: !!parsedResponse.inaccuracyMessage,
     };
 
-    return processedResponse;
+    return {
+      response: processedResponse,
+      totalUsage: response.usage?.total_tokens || 0,
+    };
   }
 }
 
