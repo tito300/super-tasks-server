@@ -28,7 +28,7 @@ export type AiQuickActionResponse = {
 };
 
 export const premiumModels: ChatCompletionCreateParamsBase['model'][] = [
-  'chatgpt-4o-latest',
+  'gpt-4o',
 ];
 
 @Controller('api/ai')
@@ -44,6 +44,7 @@ export class ChatgptController {
     @Body() body: ChatDto,
     @Req() req: Request,
   ): Promise<ChatMessage> {
+    console.log('###############');
     if (req['aiLimitReached']) {
       body.aiOptions.model = 'gpt-4o-mini';
     }

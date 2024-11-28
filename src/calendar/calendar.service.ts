@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateCalendarDto } from './dto/create-calendar.dto';
 import { UpdateCalendarDto } from './dto/update-calendar.dto';
 import { google } from 'googleapis';
@@ -12,21 +12,37 @@ export class CalendarService {
   private readonly calendar = google.calendar('v3');
 
   async getCalendarList(token: string) {
-    const response = await this.calendar.calendarList.list({
-      oauth_token: token,
-    });
-    return response.data.items;
+    try {
+      const response = await this.calendar.calendarList.list({
+        oauth_token: token,
+      });
+      return response.data.items;
+    } catch (error) {
+      if (error?.status === 401) {
+        throw new UnauthorizedException();
+      }
+
+      throw error;
+    }
   }
 
   async getEvents(token: string, calendarId: string) {
-    const events = await this.calendar.events.list({
-      calendarId,
-      oauth_token: token,
-      // RFC3339 timestamp
-      timeMin: dayjs().utc().subtract(1, 'day').startOf('day').toISOString(),
-      timeMax: dayjs().utc().add(1, 'day').endOf('day').toISOString(),
-    });
-    return events;
+    try {
+      const events = await this.calendar.events.list({
+        calendarId,
+        oauth_token: token,
+        // RFC3339 timestamp
+        timeMin: dayjs().utc().subtract(1, 'day').startOf('day').toISOString(),
+        timeMax: dayjs().utc().add(1, 'day').endOf('day').toISOString(),
+      });
+      return events;
+    } catch (error) {
+      if (error?.status === 401) {
+        throw new UnauthorizedException();
+      }
+
+      throw error;
+    }
   }
 
   create(createCalendarDto: CreateCalendarDto) {

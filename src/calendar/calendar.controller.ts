@@ -8,11 +8,13 @@ import {
   Delete,
   Req,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { CalendarService } from './calendar.service';
 import { CreateCalendarDto } from './dto/create-calendar.dto';
 import { UpdateCalendarDto } from './dto/update-calendar.dto';
 import { request } from 'express';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('api/calendars')
 export class CalendarController {
@@ -23,19 +25,23 @@ export class CalendarController {
     return this.calendarService.create(createCalendarDto);
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   async findAll(@Req() request: Request) {
     // throw new Error('Not implemented');
+
     return this.calendarService.getCalendarList(
       request.headers['content-oauth'] as string,
     );
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.calendarService.findOne(+id);
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id/events')
   findEvents(@Req() request: Request, @Param('id') id: string) {
     // return 401 if no token
