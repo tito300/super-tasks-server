@@ -7,6 +7,7 @@ export type JWTUser = {
   email: string;
   subscriptionType: SubscriptionType;
   todayAiUsage: number;
+  googleAccessToken?: string;
   todayAiUsageTimestamp: Date;
 };
 

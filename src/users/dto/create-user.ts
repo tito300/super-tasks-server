@@ -10,4 +10,7 @@ export class CreateUserDTO {
 
   @IsOptional()
   subscriptionType?: SubscriptionType;
+
+  @IsOptional()
+  googleToken?: string;
 }

@@ -20,7 +20,6 @@ export class TokenGuard implements CanActivate {
     const requestBody = request.body as AiRequestBaseBody;
 
     if (user.subscriptionType !== 'premium') {
-      console.log('%%%%%%% model', requestBody.aiOptions.model);
       if (premiumModels.includes(requestBody.aiOptions.model)) {
         const beforeToday = dayjs(user.todayAiUsageTimestamp).isBefore(
           dayjs(),
@@ -29,9 +28,6 @@ export class TokenGuard implements CanActivate {
 
         const dailyLimit = this.configService.get<number>('TODAYS_TOKEN_LIMIT');
 
-        console.log('%%%%%%% beforeToday', beforeToday);
-        console.log('%%%%%%% user.todayAiUsage', user.todayAiUsage);
-        console.log('%%%%%%% this.todaysTokenLimit', dailyLimit);
         if (!beforeToday) {
           if (user.todayAiUsage >= dailyLimit) {
             request['aiLimitReached'] = true;

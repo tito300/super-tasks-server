@@ -2,7 +2,7 @@ import { IsNotEmpty } from 'class-validator';
 
 export class SignInDTO {
   @IsNotEmpty()
-  accountId: string;
+  email: string;
 
   @IsNotEmpty()
   googleToken: string;

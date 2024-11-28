@@ -15,16 +15,14 @@ import { Request } from 'express';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 
-@Controller('/api/tasks')
+@Controller('/api/taskLists')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @UseGuards(AuthGuard)
   @Get('/')
   async getTaskList(@Req() request: Request) {
-    return this.tasksService.listTaskList(
-      request.headers['content-oauth'] as string,
-    );
+    return this.tasksService.listTaskList(request.user.googleAccessToken);
   }
 
   @UseGuards(AuthGuard)
@@ -35,7 +33,7 @@ export class TasksController {
   ) {
     return this.tasksService.listTasks(
       tasklistId,
-      request.headers['content-oauth'] as string,
+      request.user.googleAccessToken,
     );
   }
 
@@ -49,7 +47,7 @@ export class TasksController {
     return this.tasksService.deleteTask(
       tasklistId,
       taskId,
-      request.headers['content-oauth'] as string,
+      request.user.googleAccessToken,
     );
   }
 
@@ -65,7 +63,7 @@ export class TasksController {
       tasklistId,
       taskId,
       previousTaskId,
-      request.headers['content-oauth'] as string,
+      request.user.googleAccessToken,
     );
   }
 
@@ -80,7 +78,7 @@ export class TasksController {
     return this.tasksService.updateTask(
       tasklistId,
       task,
-      request.headers['content-oauth'] as string,
+      request.user.googleAccessToken,
     );
   }
 
@@ -97,7 +95,7 @@ export class TasksController {
       tasklistId,
       task,
       previousTaskId,
-      request.headers['content-oauth'] as string,
+      request.user.googleAccessToken,
     );
   }
 

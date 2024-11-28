@@ -45,8 +45,8 @@ export class UsersService {
 
     return null;
   }
-  async findByAccountId(accountId: string): Promise<User | null> {
-    const user = await this.useRepository.findOneBy({ accountId });
+  async findByEmail(email: string): Promise<User | null> {
+    const user = await this.useRepository.findOneBy({ email });
     return user;
   }
 
@@ -60,11 +60,6 @@ export class UsersService {
 
     const lastReset = user.todayAiUsageTimestamp;
     const lastResetBeforeToday = dayjs(lastReset).isBefore(dayjs(), 'day');
-
-    console.log('********* lastResetBeforeToday', lastResetBeforeToday);
-    console.log('********* lastReset', lastReset);
-    console.log('********* tokensUsed', tokensUsed);
-    console.log('********* user.todayAiUsage', user.todayAiUsage);
 
     if (!lastReset || !lastResetBeforeToday) {
       user.todayAiUsage += tokensUsed;

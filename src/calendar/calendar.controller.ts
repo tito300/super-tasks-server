@@ -13,7 +13,7 @@ import {
 import { CalendarService } from './calendar.service';
 import { CreateCalendarDto } from './dto/create-calendar.dto';
 import { UpdateCalendarDto } from './dto/update-calendar.dto';
-import { request } from 'express';
+import { Request } from 'express';
 import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('api/calendars')
@@ -30,9 +30,7 @@ export class CalendarController {
   async findAll(@Req() request: Request) {
     // throw new Error('Not implemented');
 
-    return this.calendarService.getCalendarList(
-      request.headers['content-oauth'] as string,
-    );
+    return this.calendarService.getCalendarList(request.user.googleAccessToken);
   }
 
   @UseGuards(AuthGuard)
@@ -47,10 +45,7 @@ export class CalendarController {
     // return 401 if no token
     // throw new UnauthorizedException();
 
-    return this.calendarService.getEvents(
-      request.headers['content-oauth'] as string,
-      id,
-    );
+    return this.calendarService.getEvents(request.user.googleAccessToken, id);
   }
 
   @Patch(':id')

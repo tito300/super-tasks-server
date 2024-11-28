@@ -16,12 +16,11 @@ export class UsersController {
 
   @Post()
   async create(@Body() user: CreateUserDTO, @Res() res: Response) {
-    console.log('user', user);
     const createdUser = await this.usersService.create(user);
 
     if (createdUser) {
       const jwt_token = await this.jwtService.signAsync(
-        getJwtBody(createdUser),
+        getJwtBody(createdUser, user.googleToken),
       );
 
       const userDto = mapUserToDto(createdUser);
