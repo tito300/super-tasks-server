@@ -27,5 +27,6 @@ export class AiQuickActionsBody extends AiRequestBaseBody {
     | 'Simplify'
     | 'PeerReview'
     | 'Answer'
-    | 'FactCheck';
+    | 'FactCheck'
+    | 'Fix';
 }

@@ -118,6 +118,8 @@ export class ChatgptController {
         serviceMethod = 'answer';
       case 'FactCheck':
         serviceMethod = 'factCheck';
+      case 'Fix':
+        serviceMethod = 'fix';
         break;
     }
     const limitReached = req['aiLimitReached'];

@@ -14,14 +14,21 @@ import { TasksService } from './tasks.service';
 import { Request } from 'express';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { sleep } from 'openai/core';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('/api/taskLists')
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(
+    private readonly tasksService: TasksService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @UseGuards(AuthGuard)
   @Get('/')
   async getTaskList(@Req() request: Request) {
+    await this.sleepInDev();
+
     return this.tasksService.listTaskList(request.user.googleAccessToken);
   }
 
@@ -31,6 +38,8 @@ export class TasksController {
     @Param('tasklistId') tasklistId: string,
     @Req() request: Request,
   ) {
+    await this.sleepInDev();
+
     return this.tasksService.listTasks(
       tasklistId,
       request.user.googleAccessToken,
@@ -44,6 +53,8 @@ export class TasksController {
     @Param('tasklistId') tasklistId: string,
     @Param('taskId') taskId: string,
   ) {
+    await this.sleepInDev();
+
     return this.tasksService.deleteTask(
       tasklistId,
       taskId,
@@ -59,6 +70,8 @@ export class TasksController {
     @Body('previousTaskId') previousTaskId: string | undefined,
     @Req() request: Request,
   ) {
+    await this.sleepInDev();
+
     return this.tasksService.moveTask(
       tasklistId,
       taskId,
@@ -75,6 +88,8 @@ export class TasksController {
     @Param('taskId') taskId: string,
     @Body() task: any,
   ) {
+    await this.sleepInDev();
+
     return this.tasksService.updateTask(
       tasklistId,
       task,
@@ -90,7 +105,8 @@ export class TasksController {
     @Body() task: CreateTaskDto,
     @Query('previous') previousTaskId: string,
   ) {
-    console.log(task);
+    await this.sleepInDev();
+
     return this.tasksService.createTask(
       tasklistId,
       task,
@@ -106,6 +122,12 @@ export class TasksController {
     @Param('tasklistId') tasklistId: string,
     @Body() task: CreateTaskDto,
   ) {
+    await this.sleepInDev();
+
     return this.tasksService.createTasksList();
+  }
+
+  private async sleepInDev() {
+    if (this.configService.get('NODE_ENV') === 'development') await sleep(500);
   }
 }

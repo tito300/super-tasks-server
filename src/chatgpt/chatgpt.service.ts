@@ -17,6 +17,7 @@ import { AiQuickActionResponse } from './chatgpt.controller';
 import { constructAnswerPrompt } from './utils/constructAnswerPrompt';
 import { constructFactCheckPrompt } from './utils/constructFactCheckPrompt';
 import { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions';
+import { constructFixPrompt } from './utils/constructFixPrompt';
 
 export type ChatGptModel = ChatCompletionCreateParamsBase['model'];
 export type QuickActionServiceResponse = {
@@ -250,6 +251,28 @@ export class ChatgptService {
     const response = await this.openAiApi.chat.completions.create({
       model: body.aiOptions?.model || 'gpt-4o-mini',
       messages: constructFactCheckPrompt(body),
+      temperature: 0.5,
+      response_format: { type: 'json_object' },
+    });
+
+    const parsedResponse = JSON.parse(response.choices[0].message.content);
+    const processedResponse = {
+      message: parsedResponse.message || '',
+      inaccuracyMessage: appendFactCheckDisclaimer(
+        parsedResponse.inaccuracyMessage,
+      ),
+      hasInaccuracies: !!parsedResponse.inaccuracyMessage,
+    };
+
+    return {
+      response: processedResponse,
+      totalUsage: response.usage?.total_tokens || 0,
+    };
+  }
+  async fix(body: AiQuickActionsBody): Promise<QuickActionServiceResponse> {
+    const response = await this.openAiApi.chat.completions.create({
+      model: body.aiOptions?.model || 'gpt-4o-mini',
+      messages: constructFixPrompt(body),
       temperature: 0.5,
       response_format: { type: 'json_object' },
     });
