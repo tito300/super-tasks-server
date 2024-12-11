@@ -12,6 +12,8 @@ import { ChatgptController } from './chatgpt/chatgpt.controller';
 import { ChatgptModule } from './chatgpt/chatgpt.module';
 import { ConfigModule } from '@nestjs/config';
 
+console.log('DATABASE_URL: ', process.env.DATABASE_URL);
+
 @Module({
   imports: [
     ConfigModule.forRoot({
