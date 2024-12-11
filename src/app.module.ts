@@ -24,8 +24,11 @@ console.log('DATABASE_URL: ', process.env.DATABASE_URL);
       type: 'postgres',
       url: process.env.DATABASE_URL,
       entities: [],
-      synchronize: true,
+      synchronize: process.env.NODE_ENV !== 'production',
       autoLoadEntities: true,
+      ssl: {
+        rejectUnauthorized: false, // Required for Heroku
+      },
     }),
     AuthModule,
     UsersModule,
