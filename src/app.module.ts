@@ -20,11 +20,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'postgres',
-      database: 'axess',
+      url: process.env.DATABASE_URL,
       entities: [],
       synchronize: true,
       autoLoadEntities: true,
