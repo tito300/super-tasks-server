@@ -11,6 +11,7 @@ import {
   AiRequestBaseBody,
   ChatDto,
   ChatMessage,
+  ReviewPrBody,
 } from './dto/update-chat.dto';
 import { ChatgptService, QuickActionServiceResponse } from './chatgpt.service';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -149,5 +150,29 @@ export class ChatgptController {
         console.error('Error updating today ai usage', error);
       }
     }
+  }
+
+  @UseGuards(AuthGuard, TokenGuard)
+  @Post('/review-pr')
+  async reviewPr(
+    @Body()
+    body: ReviewPrBody,
+    @Req() req: Request,
+  ): Promise<{
+    message: any;
+    limitReached?: boolean;
+  }> {
+    const limitReached = req['aiLimitReached'];
+
+    if (limitReached) {
+      body.aiOptions.model = 'gpt-4o-mini';
+    }
+
+    const { response, totalUsage } = await this.chatGptService.reviewPr(body);
+
+    this.updateTodayAiUsage(req.user, body.aiOptions.model, totalUsage);
+    response.limitReached = limitReached;
+
+    return response;
   }
 }

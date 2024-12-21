@@ -30,3 +30,14 @@ export class AiQuickActionsBody extends AiRequestBaseBody {
     | 'FactCheck'
     | 'Fix';
 }
+
+export type PrDiff = {
+  filePath: string;
+  diffsUnified: string;
+};
+export type ReviewPrBody = {
+  aiOptions: AiRequestBaseBody['aiOptions'];
+  prDescription: string;
+  prTitle: string;
+  diffData: PrDiff[];
+};

@@ -5,6 +5,8 @@ import {
   AiRequestBaseBody,
   ChatDto,
   ChatMessage,
+  PrDiff,
+  ReviewPrBody,
 } from './dto/update-chat.dto';
 import { getChatGptMessages } from './utils/getChatGptMessages';
 import { ConfigService } from '@nestjs/config';
@@ -18,12 +20,32 @@ import { constructAnswerPrompt } from './utils/constructAnswerPrompt';
 import { constructFactCheckPrompt } from './utils/constructFactCheckPrompt';
 import { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions';
 import { constructFixPrompt } from './utils/constructFixPrompt';
+import { constructReviewPrPrompt } from './utils/constructReviewPrPrompt';
+import { z } from 'zod';
+import { zodResponseFormat } from 'openai/helpers/zod';
 
 export type ChatGptModel = ChatCompletionCreateParamsBase['model'];
 export type QuickActionServiceResponse = {
   response: AiQuickActionResponse;
   totalUsage: number;
 };
+
+const ReviewPrResult = z.object({
+  files: z.array(
+    z.object({
+      filePath: z.string(),
+      suggestions: z.array(
+        z.object({
+          lineNumber: z.string(),
+          suggestion: z.string(),
+          codeChange: z.string(),
+          severity: z.number(),
+          language: z.string(),
+        }),
+      ),
+    }),
+  ),
+});
 
 @Injectable()
 export class ChatgptService {
@@ -285,6 +307,23 @@ export class ChatgptService {
       ),
       hasInaccuracies: !!parsedResponse.inaccuracyMessage,
     };
+
+    return {
+      response: processedResponse,
+      totalUsage: response.usage?.total_tokens || 0,
+    };
+  }
+
+  async reviewPr(body: ReviewPrBody) {
+    const response = await this.openAiApi.beta.chat.completions.parse({
+      model: body.aiOptions?.model || 'gpt-4o-mini',
+      messages: constructReviewPrPrompt(body),
+      temperature: 0.5,
+      response_format: zodResponseFormat(ReviewPrResult, 'review'),
+    });
+
+    const parsedResponse = JSON.parse(response.choices[0].message.content);
+    const processedResponse = parsedResponse || { feedback: [] };
 
     return {
       response: processedResponse,

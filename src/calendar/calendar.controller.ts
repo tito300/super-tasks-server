@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   Req,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { CalendarService } from './calendar.service';
